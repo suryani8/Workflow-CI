@@ -78,7 +78,7 @@ print(f"\nBest Parameters: {best_params}")
 # TRAINING DENGAN MANUAL LOGGING
 mlflow.set_experiment("Heart Disease - CI Pipeline")
 
-with mlflow.start_run(run_name="RF_CI_Run"):
+with mlflow.start_run(run_name="RF_CI_Run", nested=True):
 
     # Prediksi menggunakan data testing
     y_pred      = best_model.predict(X_test)
