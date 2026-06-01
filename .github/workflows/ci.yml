@@ -61,8 +61,14 @@ jobs:
           import mlflow, os
           mlflow.set_tracking_uri('https://dagshub.com/suryani8/Eksperimen_SML_Suryani_apc367d6x0436.mlflow')
           client = mlflow.tracking.MlflowClient()
+          experiments = client.search_experiments()
+          exp_id = None
+          for exp in experiments:
+              if exp.name == 'Heart Disease - CI Pipeline':
+                  exp_id = exp.experiment_id
+                  break
           runs = client.search_runs(
-              experiment_ids=['2'],
+              experiment_ids=[exp_id],
               order_by=['start_time DESC'],
               max_results=1
           )
