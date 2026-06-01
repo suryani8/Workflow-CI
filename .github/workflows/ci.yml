@@ -51,15 +51,13 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-       - name: Build and Push Docker Image
+      - name: Build and Push Docker Image
         env:
           MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: |
-          # Ambil run_id terbaru dari DagsHub
           RUN_ID=$(python -c "
-          import mlflow
-          import os
+          import mlflow, os
           os.environ['MLFLOW_TRACKING_USERNAME'] = '${{ secrets.MLFLOW_TRACKING_USERNAME }}'
           os.environ['MLFLOW_TRACKING_PASSWORD'] = '${{ secrets.MLFLOW_TRACKING_PASSWORD }}'
           mlflow.set_tracking_uri('https://dagshub.com/suryani8/Eksperimen_SML_Suryani_apc367d6x0436.mlflow')
