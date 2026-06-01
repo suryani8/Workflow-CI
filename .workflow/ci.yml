@@ -1,0 +1,59 @@
+name: CI - Heart Disease MLProject
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'MLProject/**'
+  workflow_dispatch:
+
+jobs:
+  train-and-deploy:
+    name: Train Model & Build Docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mlflow==2.19.0 dagshub scikit-learn pandas numpy matplotlib seaborn
+
+      - name: Run MLflow Project
+        env:
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
+          MLFLOW_TRACKING_URI: https://dagshub.com/suryani8/Eksperimen_SML_Suryani_apc367d6x0436.mlflow
+        run: |
+          mlflow run MLProject/ --env-manager=local
+
+      - name: Upload Artifacts to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-artifacts-${{ github.run_number }}
+          path: |
+            confusion_matrix.png
+            feature_importance.png
+            roc_curve.png
+          retention-days: 7
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Docker Image
+        run: |
+          mlflow models build-docker \
+            --model-uri "runs:/$(cat mlflow_run_id.txt)/random_forest_ci" \
+            --name "suryanii/heart-disease-rf"
+          docker push suryanii/heart-disease-rf
