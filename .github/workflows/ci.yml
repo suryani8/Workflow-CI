@@ -57,13 +57,19 @@ jobs:
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: |
           export MLFLOW_TRACKING_URI=https://dagshub.com/suryani8/Eksperimen_SML_Suryani_apc367d6x0436.mlflow
-          export MLFLOW_TRACKING_USERNAME=${{ secrets.MLFLOW_TRACKING_USERNAME }}
-          export MLFLOW_TRACKING_PASSWORD=${{ secrets.MLFLOW_TRACKING_PASSWORD }}
           RUN_ID=$(python -c "
           import mlflow, os
           mlflow.set_tracking_uri('https://dagshub.com/suryani8/Eksperimen_SML_Suryani_apc367d6x0436.mlflow')
           client = mlflow.tracking.MlflowClient()
-          runs = client.search_runs(experiment_ids=['1'], order_by=['start_time DESC'], max_results=1)
+          experiments = client.search_experiments()
+          for exp in experiments:
+              print(f'ID: {exp.experiment_id}, Name: {exp.name}', flush=True)
+          runs = client.search_runs(
+              experiment_ids=[exp.experiment_id for exp in experiments],
+              filter_string=\"metrics.accuracy > 0\",
+              order_by=['start_time DESC'],
+              max_results=1
+          )
           print(runs[0].info.run_id)
           ")
           echo "Run ID: $RUN_ID"
