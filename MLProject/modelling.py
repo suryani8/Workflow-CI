@@ -83,7 +83,7 @@ with mlflow.start_run(run_name="RF_CI_Run", nested=True):
     # Prediksi menggunakan data testing
     y_pred      = best_model.predict(X_test)
     y_pred_prob = best_model.predict_proba(X_test)[:, 1]
-
+    
     # Hitung metrik
     acc     = accuracy_score(y_test, y_pred)
     prec    = precision_score(y_test, y_pred)
@@ -91,28 +91,30 @@ with mlflow.start_run(run_name="RF_CI_Run", nested=True):
     f1      = f1_score(y_test, y_pred)
     fpr, tpr, _ = roc_curve(y_test, y_pred_prob)
     roc_auc = auc(fpr, tpr)
-
-    # Manual logging parameter
+    
+    # Manual logging parameter langsung ke active run
     mlflow.log_param("n_estimators",      best_params['n_estimators'])
     mlflow.log_param("max_depth",         best_params['max_depth'])
     mlflow.log_param("min_samples_split", best_params['min_samples_split'])
     mlflow.log_param("cv_folds",          5)
     mlflow.log_param("random_state",      42)
-
+    
     # Manual logging metrik
     mlflow.log_metric("accuracy",  acc)
     mlflow.log_metric("precision", prec)
     mlflow.log_metric("recall",    rec)
     mlflow.log_metric("f1_score",  f1)
     mlflow.log_metric("roc_auc",   roc_auc)
-
+    
     print(f"\n=== Hasil Evaluasi Model ===")
     print(f"Accuracy : {acc:.4f}")
     print(f"Precision: {prec:.4f}")
     print(f"Recall   : {rec:.4f}")
     print(f"F1 Score : {f1:.4f}")
     print(f"ROC AUC  : {roc_auc:.4f}")
-
+    print(f"\n=== Classification Report ===")
+    print(classification_report(y_test, y_pred))
+    
     # Artefak 1: Confusion Matrix
     cm = confusion_matrix(y_test, y_pred)
     plt.figure(figsize=(6, 5))
@@ -125,7 +127,7 @@ with mlflow.start_run(run_name="RF_CI_Run", nested=True):
     plt.tight_layout()
     plt.savefig('confusion_matrix.png', dpi=150)
     mlflow.log_artifact('confusion_matrix.png')
-
+    
     # Artefak 2: Feature Importance
     feat_imp = pd.Series(best_model.feature_importances_,
                          index=X_train.columns).sort_values(ascending=False).head(15)
@@ -136,7 +138,7 @@ with mlflow.start_run(run_name="RF_CI_Run", nested=True):
     plt.tight_layout()
     plt.savefig('feature_importance.png', dpi=150)
     mlflow.log_artifact('feature_importance.png')
-
+    
     # Artefak 3: ROC Curve
     plt.figure(figsize=(6, 5))
     plt.plot(fpr, tpr, color='blue', lw=2,
@@ -149,9 +151,9 @@ with mlflow.start_run(run_name="RF_CI_Run", nested=True):
     plt.tight_layout()
     plt.savefig('roc_curve.png', dpi=150)
     mlflow.log_artifact('roc_curve.png')
-
+    
     # Log model
     mlflow.sklearn.log_model(best_model, "random_forest_ci")
     print("Model tersimpan ke MLflow.")
-
-print("\nmodelling.py")
+    
+    print("\nmodelling.py selesai!")
