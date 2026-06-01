@@ -24,9 +24,11 @@ parser.add_argument('--input_test',  type=str, default='heart_preprocessing_test
 args = parser.parse_args()
 
 # KONEKSI KE DAGSHUB
-os.environ['MLFLOW_TRACKING_USERNAME'] = 'suryani8'
-os.environ['MLFLOW_TRACKING_PASSWORD'] = 'eb138e8528c3a6a4be25f41f26ee5f8283f65d04'
-mlflow.set_tracking_uri('https://dagshub.com/suryani8/Eksperimen_SML_Suryani_apc367d6x0436.mlflow')
+os.environ['MLFLOW_TRACKING_USERNAME'] = os.environ.get('MLFLOW_TRACKING_USERNAME', 'suryani8')
+os.environ['MLFLOW_TRACKING_PASSWORD'] = os.environ.get('MLFLOW_TRACKING_PASSWORD', 'eb138e8528c3a6a4be25f41f26ee5f8283f65d04')
+
+tracking_uri = os.environ.get('MLFLOW_TRACKING_URI', 'https://dagshub.com/suryani8/Eksperimen_SML_Suryani_apc367d6x0436.mlflow')
+mlflow.set_tracking_uri(tracking_uri)
 
 # LOAD DATA
 # Dataset hasil preprocessing yang sudah siap digunakan untuk training
