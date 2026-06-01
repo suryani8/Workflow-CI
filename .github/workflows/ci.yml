@@ -77,5 +77,6 @@ jobs:
           echo "Run ID: $RUN_ID"
           mlflow models build-docker \
             --model-uri "runs:/$RUN_ID/random_forest_ci" \
-            --name "suryanii/heart-disease-rf"
+            --name "suryanii/heart-disease-rf" \
+             --env-manager pip
           docker push suryanii/heart-disease-rf
