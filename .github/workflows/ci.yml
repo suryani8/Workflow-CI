@@ -33,7 +33,7 @@ jobs:
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
           MLFLOW_TRACKING_URI: https://dagshub.com/suryani8/Eksperimen_SML_Suryani_apc367d6x0436.mlflow
         run: |
-          mlflow run MLProject/ --env-manager=local
+          mlflow run MLProject/ --env-manager=local --experiment-name "Heart Disease - CI Pipeline"
 
       - name: Upload Artifacts to GitHub
         uses: actions/upload-artifact@v4
