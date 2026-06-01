@@ -61,12 +61,8 @@ jobs:
           import mlflow, os
           mlflow.set_tracking_uri('https://dagshub.com/suryani8/Eksperimen_SML_Suryani_apc367d6x0436.mlflow')
           client = mlflow.tracking.MlflowClient()
-          experiments = client.search_experiments()
-          for exp in experiments:
-              print(f'ID: {exp.experiment_id}, Name: {exp.name}', flush=True)
           runs = client.search_runs(
-              experiment_ids=[exp.experiment_id for exp in experiments],
-              filter_string=\"metrics.accuracy > 0\",
+              experiment_ids=['2'],
               order_by=['start_time DESC'],
               max_results=1
           )
