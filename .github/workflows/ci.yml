@@ -78,5 +78,5 @@ jobs:
           mlflow models build-docker \
             --model-uri "runs:/$RUN_ID/random_forest_ci" \
             --name "suryanii/heart-disease-rf" \
-             --env-manager pip
+             --env-manager local
           docker push suryanii/heart-disease-rf
