@@ -1,0 +1,10 @@
+name: heart-disease-rf
+
+python_env: conda.yaml
+
+entry_points:
+  main:
+    parameters:
+      input_train: {type: str, default: "heart_preprocessing_train.csv"}
+      input_test:  {type: str, default: "heart_preprocessing_test.csv"}
+    command: "python modelling.py --input_train {input_train} --input_test {input_test}"
