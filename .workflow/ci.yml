@@ -22,6 +22,13 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Check Env
+        run: |
+          python --version
+          pip --version
+          echo "Runner OS: ${{ runner.os }}"
+          echo "GitHub Workspace: ${{ github.workspace }}"
+
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
@@ -33,16 +40,47 @@ jobs:
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
           MLFLOW_TRACKING_URI: https://dagshub.com/suryani8/Eksperimen_SML_Suryani_apc367d6x0436.mlflow
         run: |
-          mlflow run MLProject/ --env-manager=local
+          mlflow run MLProject/ --env-manager=local --experiment-name "Heart Disease - CI Pipeline"
+
+      - name: Get latest MLflow run_id
+        id: get_run_id
+        env:
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
+        run: |
+          export MLFLOW_TRACKING_URI=https://dagshub.com/suryani8/Eksperimen_SML_Suryani_apc367d6x0436.mlflow
+          RUN_ID=$(python -c "
+          import mlflow, os
+          mlflow.set_tracking_uri('https://dagshub.com/suryani8/Eksperimen_SML_Suryani_apc367d6x0436.mlflow')
+          client = mlflow.tracking.MlflowClient()
+          experiments = client.search_experiments()
+          exp_id = None
+          for exp in experiments:
+              if exp.name == 'Heart Disease - CI Pipeline':
+                  exp_id = exp.experiment_id
+                  break
+          runs = client.search_runs(
+              experiment_ids=[exp_id],
+              order_by=['start_time DESC'],
+              max_results=1
+          )
+          print(runs[0].info.run_id)
+          ")
+          echo "RUN_ID=$RUN_ID" >> $GITHUB_OUTPUT
+          echo "Run ID: $RUN_ID"
+
+      - name: Install Python Dependencies for Docker
+        run: |
+          pip install mlflow==2.19.0
 
       - name: Upload Artifacts to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: model-artifacts-${{ github.run_number }}
           path: |
-            confusion_matrix.png
-            feature_importance.png
-            roc_curve.png
+            MLProject/confusion_matrix.png
+            MLProject/feature_importance.png
+            MLProject/roc_curve.png
           retention-days: 7
 
       - name: Login to Docker Hub
@@ -51,9 +89,23 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and Push Docker Image
+      - name: Build Docker Model
+        env:
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: |
+          export MLFLOW_TRACKING_URI=https://dagshub.com/suryani8/Eksperimen_SML_Suryani_apc367d6x0436.mlflow
           mlflow models build-docker \
-            --model-uri "runs:/$(cat mlflow_run_id.txt)/random_forest_ci" \
-            --name "suryanii/heart-disease-rf"
-          docker push suryanii/heart-disease-rf
+            --model-uri "runs:/${{ steps.get_run_id.outputs.RUN_ID }}/random_forest_ci" \
+            --name "suryanii/heart-disease-rf" \
+            --env-manager local
+
+      - name: Tag Docker Image
+        run: |
+          docker tag suryanii/heart-disease-rf suryanii/heart-disease-rf:latest
+          docker tag suryanii/heart-disease-rf suryanii/heart-disease-rf:${{ github.run_number }}
+
+      - name: Push Docker Image
+        run: |
+          docker push suryanii/heart-disease-rf:latest
+          docker push suryanii/heart-disease-rf:${{ github.run_number }}
