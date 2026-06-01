@@ -30,6 +30,9 @@ os.environ['MLFLOW_TRACKING_PASSWORD'] = os.environ.get('MLFLOW_TRACKING_PASSWOR
 tracking_uri = os.environ.get('MLFLOW_TRACKING_URI', 'https://dagshub.com/suryani8/Eksperimen_SML_Suryani_apc367d6x0436.mlflow')
 mlflow.set_tracking_uri(tracking_uri)
 
+# Set experiment name agar run masuk ke experiment
+mlflow.set_experiment("Heart Disease - CI Pipeline")
+
 # LOAD DATA
 # Dataset hasil preprocessing yang sudah siap digunakan untuk training
 train_df = pd.read_csv(args.input_train)
